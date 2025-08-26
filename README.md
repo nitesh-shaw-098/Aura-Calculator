@@ -63,7 +63,6 @@ Aura-Calculator/
 
    ```bash
    git clone https://github.com/your-username/Aura-calculator.git
-````
 
 2. Open the project folder:
 
