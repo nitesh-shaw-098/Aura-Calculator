@@ -28,7 +28,7 @@ Designed with **clean UI/UX principles**, mobile responsiveness, and smooth inte
 
 ## 🌍 Live Demo
 
-Try it out here: 👉 [Live Demo](https://nitesh-shaw-098.github.io/Aura-calculator/)  
+Try it out here: 👉 [Live Demo](https://nitesh-shaw-098.github.io/Aura-Calculator/)  
 
 *(Update the above link with your GitHub Pages URL after deployment)*  
 
