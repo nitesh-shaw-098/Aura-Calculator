@@ -1,13 +1,6 @@
-Sahi bola bhai 🔥
-Live demo ka section add kar dete hain taaki GitHub pe dekhne wale log direct demo run kar saken.
-
-Ye updated `README.md` ready hai:
-
----
 
 # 📘 README.md (Aura Calculator — Pro UI)
 
-```markdown
 # ⚡ Aura Calculator — Pro UI
 
 A modern, responsive, and premium-style **Calculator Web App** with multiple modes (Standard & Converter).  
