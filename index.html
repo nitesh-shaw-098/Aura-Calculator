@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Calculator — Premium UI (Pro)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.0/tsparticles.bundle.min.js"></script>
+  <style>
+    /* --------------------------------------------------
+       Aura Calculator Pro — Single-file styles
+       Extended with Converter, Scientific & History
+       -------------------------------------------------- */
+    :root{
+      --radius:18px; --gap:12px;
+      --bg-start: #f6f7fb; --bg-end: #eef0f6;
+      --panel: rgba(255,255,255,0.6);
+      --glass-border: rgba(255,255,255,0.6);
+      --muted: #6b7280; --accent: #8a7cff; --accent-strong: #6b53ff; --text: #0b1020;
+      --btn-shadow: 0 10px 30px rgba(16,24,40,0.06);
+      --glass-reflect: rgba(255,255,255,0.55);
+    }
+    .dark{ --bg-start:#0b0f13; --bg-end:#0f1217; --panel:rgba(255,255,255,0.03); --glass-border:rgba(255,255,255,0.04); --muted:#9aa3b2; --accent:#2ad1c9; --accent-strong:#16b7a6; --text:#f7fafc; --btn-shadow:0 10px 30px rgba(0,0,0,0.6); --glass-reflect:rgba(255,255,255,0.06);} 
+    html,body{height:100%;}
+    body{margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial; background:linear-gradient(180deg,var(--bg-start),var(--bg-end)); -webkit-font-smoothing:antialiased; display:flex; align-items:center; justify-content:center; padding:0px; color:var(--text);height: 100%;}
+    #particles {position: fixed;top: 0;left: 0;width: 100%;height: 100%;z-index: -1; /* background me hi rahe */}
+
+    .container{width:100%; max-width:920px; display:grid; grid-template-columns: 1fr 420px; gap:18px}
+    .panel{border-radius:22px; padding:18px; box-sizing:border-box; background:linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08)); box-shadow:0 15px 40px rgba(10,15,25,0.08); backdrop-filter: blur(8px) saturate(120%); border:1px solid rgba(255,255,255,0.35)}
+
+    /* Left area (main app) */
+    .left{display:flex; flex-direction:column; gap:12px}
+    .topbar{display:flex; align-items:center; justify-content:space-between}
+    .title{font-weight:700}
+    .controls{display:flex; gap:8px}
+    .icon-btn{background:transparent;border:none;padding:8px;border-radius:10px;cursor:pointer;font-size:18px}
+
+    /* Tabs */
+    .tabs{display:flex; gap:8px; margin-top:6px}
+    .tab{flex:1;padding:10px 12px;border-radius:12px; text-align:center; cursor:pointer; font-weight:600}
+    .tab.active{background:linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06)); box-shadow:var(--btn-shadow)}
+
+    /* main areas */
+    .content{background:transparent; border-radius:14px; overflow:hidden}
+    .page{display:none}
+    .page.active{display:block}
+
+    /* calculator styles (similar to previous) */
+    .calculator{display:flex; flex-direction:column; gap:12px}
+    .display{border-radius:14px; padding:14px; min-height:96px; background:linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08)); border:1px solid var(--glass-border); backdrop-filter: blur(6px) saturate(130%); display:flex; flex-direction:column; justify-content:center; align-items:flex-end; gap:4px; position:relative; overflow:hidden}
+    .display::after{content:''; position:absolute; left:-40%; top:-60%; width:180%; height:120%; transform:rotate(18deg); background:radial-gradient(ellipse at top left, rgba(255,255,255,0.45), transparent 30%); opacity:0.9; pointer-events:none; mix-blend-mode:overlay}
+    .expression{font-size:13px; color:var(--muted)}
+    .result{font-weight:700; font-size:36px}
+
+    .pad{display:grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 64px; gap:var(--gap)}
+    .btn{border-radius:12px; border:none; cursor:pointer; user-select:none; font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:0; transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms ease, background 180ms ease; background:linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.08)); box-shadow:var(--btn-shadow); color:var(--text)}
+    .btn::before{content:''; position:absolute; left:0; right:0; top:0; height:60%; background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.06)); transition:opacity 200ms ease; mix-blend-mode:overlay}
+    .btn.operator{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:var(--muted)}
+    .btn.equals{ background: linear-gradient(180deg, var(--accent), var(--accent-strong)); color:white; box-shadow: 0 12px 30px rgba(99,70,255,0.16); }
+    .btn.function{ background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06)); color:var(--muted)}
+    .btn.zero{ grid-column: 1 / span 2 }
+    .btn.equals{ grid-row: span 2 }
+    .btn.active{ transform: translateY(6px) scale(0.996); box-shadow: inset 0 6px 18px rgba(0,0,0,0.08); }
+
+    /* converter */
+    .converter-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .conv-card{padding:14px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)); border:1px solid var(--glass-border)}
+    .unit-row{display:flex; gap:8px; align-items:center}
+    .unit-select{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.04); background:transparent}
+    .value-input{width:100%; padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.04); font-size:18px; text-align:right}
+    .converter-footer{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
+
+    /* history */
+    .history-list{max-height:420px; overflow:auto; display:flex; flex-direction:column; gap:8px}
+    .history-item{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); display:flex; justify-content:space-between; align-items:center}
+    .history-txt{font-size:14px;color:var(--muted)}
+    .history-time{font-size:12px;color:var(--muted)}
+
+    /* right column (details/help) */
+    .right{display:flex; flex-direction:column; gap:12px}
+    .card{padding:14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)); border:1px solid var(--glass-border)}
+
+    /* scientific drawer */
+    .sci-drawer{margin-top:8px;border-radius:12px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); display:flex; gap:8px; flex-wrap:wrap}
+    .sci-key{min-width:64px;padding:8px;border-radius:10px;text-align:center;border:1px solid rgba(255,255,255,0.04); cursor:pointer}
+
+    @media (max-width:960px){ .container{grid-template-columns:1fr; padding:12px} .right{order:2} }
+    @media (max-width:960px){
+  .container{
+    display: flex;
+    flex-direction: column; /* ek ke neeche ek */
+    padding: 12px;
+    min-height: 100vh; /* full screen height */
+    box-sizing: border-box;
+  }
+}
+    @media (max-width:960px){
+  .left-panel{
+    flex: 1;              /* jitna space mile use fill kar */
+    width: 100%;          /* poora width */
+    min-height: 50vh;     /* kam se kam half screen */
+    position: relative;   /* overlap avoid */
+    margin-bottom: 20px;  /* neeche gap */
+  }
+}
+
+
+  </style>
+</head>
+<body>
+    <div id="particles"></div>
+  <div class="container" id="app">
+    <!-- LEFT: main interactive area -->
+    <div class="panel left">
+      <div class="topbar">
+        <div style="display:flex;flex-direction:column">
+          <div class="title">Aura Calculator — Pro</div>
+          <div style="font-size:12px;color:var(--muted)">Calculator • Converter • Scientific • History</div>
+        </div>
+        <div class="controls">
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌙</button>
+          <button class="icon-btn" id="soundToggle" aria-label="Toggle sound">🔊</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <div class="tab active" data-tab="calculator">Calculator</div>
+        <div class="tab" data-tab="converter">Converter</div>
+        <div class="tab" data-tab="history">History</div>
+      </div>
+
+      <div class="content">
+        <!-- CALCULATOR PAGE -->
+        <div class="page active" id="calculator">
+          <div class="calculator">
+            <div class="display" id="display">
+              <div class="expression" id="expression">&nbsp;</div>
+              <div class="result" id="result">0</div>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+              <div style="display:flex; gap:8px; align-items:center">
+                <button class="icon-btn" id="sciToggle" aria-label="Toggle scientific">∑</button>
+                <div style="font-size:12px;color:var(--muted)">Scientific keys</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted)">Swipe → to clear all • Swipe ← delete</div>
+            </div>
+
+            <div class="sci-drawer" id="sciDrawer" style="display:none">
+              <!-- scientific keys (clickable) -->
+              <div class="sci-key" data-sci="pi">π</div>
+              <div class="sci-key" data-sci="e">e</div>
+              <div class="sci-key" data-sci="sin">sin</div>
+              <div class="sci-key" data-sci="cos">cos</div>
+              <div class="sci-key" data-sci="tan">tan</div>
+              <div class="sci-key" data-sci="asin">asin</div>
+              <div class="sci-key" data-sci="log">log</div>
+              <div class="sci-key" data-sci="ln">ln</div>
+              <div class="sci-key" data-sci="^">xʸ</div>
+              <div class="sci-key" data-sci="sqrt">√</div>
+              <div class="sci-key" data-sci="fact">n!</div>
+            </div>
+
+            <div class="pad" id="pad">
+              <button class="btn function" data-action="clear">C</button>
+              <button class="btn function" data-action="delete">DEL</button>
+              <button class="btn operator" data-action="/">÷</button>
+              <button class="btn operator" data-action="*">×</button>
+
+              <button class="btn digit" data-value="7">7</button>
+              <button class="btn digit" data-value="8">8</button>
+              <button class="btn digit" data-value="9">9</button>
+              <button class="btn operator" data-action="-">−</button>
+
+              <button class="btn digit" data-value="4">4</button>
+              <button class="btn digit" data-value="5">5</button>
+              <button class="btn digit" data-value="6">6</button>
+              <button class="btn operator" data-action="+">+</button>
+
+              <button class="btn digit" data-value="1">1</button>
+              <button class="btn digit" data-value="2">2</button>
+              <button class="btn digit" data-value="3">3</button>
+              <button class="btn equals" data-action="=">=</button>
+
+              <button class="btn zero digit" data-value="0">0</button>
+              <button class="btn digit" data-value=".">.</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONVERTER PAGE -->
+        <div class="page" id="converter">
+          <div class="converter-grid">
+            <div class="conv-card">
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Category</div>
+              <select id="convCategory" class="unit-select">
+                <option value="currency">Currency</option>
+                <option value="length">Length</option>
+                <option value="area">Area</option>
+                <option value="volume">Volume</option>
+                <option value="weight">Weight</option>
+                <option value="temperature">Temperature</option>
+                <option value="speed">Speed</option>
+                <option value="pressure">Pressure</option>
+                <option value="power">Power</option>
+                <option value="number">Number System</option>
+              </select>
+
+              <div style="height:12px"></div>
+              <div class="unit-row">
+                <input type="number" id="convInput" class="value-input" placeholder="Enter value" />
+              </div>
+
+              <div style="height:12px"></div>
+              <div class="unit-row">
+                <select id="convFrom" class="unit-select"></select>
+                <select id="convTo" class="unit-select"></select>
+              </div>
+
+              <div class="converter-footer">
+                <div style="font-weight:600">Result</div>
+                <div id="convRate" style="font-size:12px;color:var(--muted)"></div>
+              </div>
+
+              <div style="margin-top:10px;font-size:20px;text-align:right" id="convResult">—</div>
+            </div>
+
+            <div class="conv-card">
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Live Currency (optional)</div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Tip: Connect your API key to fetch live exchange rates. Includes caching & last-update timestamp.</div>
+              <div style="height:8px"></div>
+              <div style="display:flex; gap:8px; align-items:center">
+                <input id="apiKey" class="unit-select" placeholder="API key (optional)" />
+                <button class="btn function" id="fetchRates">Fetch</button>
+              </div>
+
+              <div style="margin-top:12px">
+                <div style="font-size:13px;color:var(--muted)">Cached rates:</div>
+                <div id="ratesInfo" style="font-size:13px;color:var(--muted);margin-top:6px">No rates fetched</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY PAGE -->
+        <div class="page" id="history">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-weight:600">History</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn function" id="clearHistory">Clear All</button>
+                <button class="btn function" id="exportHistory">Export</button>
+              </div>
+            </div>
+            <div class="history-list" id="historyList"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: detail cards / help / tips -->
+    <div class="panel right">
+      <div class="card">
+        <div style="font-weight:600">Quick Tips</div>
+        <ul style="margin-top:8px;color:var(--muted)">
+          <li>Swipe display → clear / delete</li>
+          <li>Tap history item to reuse result</li>
+          <li>Use scientific keys for advanced operations</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:600">About Calculator</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px">All conversions are precise. Currency rates can be connected via API (developer key). History persists locally and can be exported.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Aura Calculator Pro — Extended Interactivity
+       - Tabs: calculator / converter / history
+       - Converter: local unit conversions + placeholder currency fetch
+       - Scientific drawer: simple function application
+       - History: save and reuse
+    */
+
+    (function(){
+      // Elements
+      const tabs = Array.from(document.querySelectorAll('.tab'));
+      const pages = Array.from(document.querySelectorAll('.page'));
+      const themeToggle = document.getElementById('themeToggle');
+      const soundToggle = document.getElementById('soundToggle');
+      const sciToggle = document.getElementById('sciToggle');
+      const sciDrawer = document.getElementById('sciDrawer');
+
+      // Calculator elements
+      const display = document.getElementById('display');
+      const expr = document.getElementById('expression');
+      const resultEl = document.getElementById('result');
+      const pad = document.getElementById('pad');
+
+      // Converter elements
+      const convCategory = document.getElementById('convCategory');
+      const convFrom = document.getElementById('convFrom');
+      const convTo = document.getElementById('convTo');
+      const convInput = document.getElementById('convInput');
+      const convResult = document.getElementById('convResult');
+      const convRate = document.getElementById('convRate');
+      const apiKeyInput = document.getElementById('apiKey');
+      const fetchRatesBtn = document.getElementById('fetchRates');
+      const ratesInfo = document.getElementById('ratesInfo');
+
+      // History elements
+      const historyList = document.getElementById('historyList');
+      const clearHistoryBtn = document.getElementById('clearHistory');
+      const exportHistoryBtn = document.getElementById('exportHistory');
+
+      // State
+      let current = '0'; let previous = null; let operator = null; let overwrite = false;
+      const settings = { theme: localStorage.getItem('aura_theme') || 'light', sounds: localStorage.getItem('aura_sounds') !== 'false', haptics: localStorage.getItem('aura_haptics') !== 'false' };
+      let audioCtx = null; let audioInitialized = false;
+      const VIB = { tap:14, equals:40, error: [10,30,10], sci:20 };
+
+      // converter data (local conversion factors)
+      const units = {
+        length: { m:['Meter','m',1], km:['Kilometer','km',1000], cm:['Centimeter','cm',0.01], mm:['Millimeter','mm',0.001], in:['Inch','in',0.0254], ft:['Foot','ft',0.3048], yd:['Yard','yd',0.9144], mi:['Mile','mi',1609.344] },
+        weight: { kg:['Kilogram','kg',1], g:['Gram','g',0.001], mg:['Milligram','mg',0.000001], lb:['Pound','lb',0.45359237], oz:['Ounce','oz',0.0283495231] },
+        temperature: { C:['Celsius','C'], F:['Fahrenheit','F'], K:['Kelvin','K'] },
+        area: { m2:['Square meter','m²',1], km2:['Square kilometer','km²',1e6], cm2:['Square centimeter','cm²',0.0001], ha:['Hectare','ha',10000], acre:['Acre','ac',4046.8564224] },
+        volume: { l:['Liter','L',0.001], ml:['Milliliter','mL',0.000001], m3:['Cubic meter','m³',1], tbsp:['Tablespoon','tbsp',0.0000147868], tsp:['Teaspoon','tsp',0.00000492892] },
+        speed: { mps:['m/s','m/s',1], kmh:['km/h','km/h',0.277777778], mph:['mph','mph',0.44704] },
+        pressure: { pa:['Pascal','Pa',1], kpa:['kPa','kPa',1000], bar:['Bar','bar',100000], atm:['Atm','atm',101325] },
+        power: { w:['Watt','W',1], kw:['Kilowatt','kW',1000], hp:['Horsepower','hp',745.699872] },
+        number: { dec:['Decimal','dec'], bin:['Binary','bin'], hex:['Hexadecimal','hex'], oct:['Octal','oct'] }
+      };
+
+      // history persistence
+      function loadHistory(){ const data = JSON.parse(localStorage.getItem('aura_history_v2')||'[]'); return data }
+      function saveHistory(item){ const h = loadHistory(); h.unshift(item); localStorage.setItem('aura_history_v2', JSON.stringify(h.slice(0,200))); renderHistory(); }
+      function clearHistory(){ localStorage.removeItem('aura_history_v2'); renderHistory(); }
+
+      // Init theme and UI
+      function applyTheme(){ if(settings.theme==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); themeToggle.textContent = settings.theme==='dark' ? '☀️' : '🌙'; localStorage.setItem('aura_theme', settings.theme); }
+      function updateSoundUI(){ soundToggle.textContent = settings.sounds ? '🔊' : '🔈'; }
+
+      // Tabs
+      tabs.forEach(t=>t.addEventListener('click', ()=>{ tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); pages.forEach(p=>p.classList.remove('active')); document.getElementById(t.dataset.tab).classList.add('active'); }))
+
+      // Calculator core (simple, chainable)
+      function inputDigit(d){ if(overwrite){ current = d==='.' ? '0.' : d; overwrite=false; } else if(d==='.' && current.includes('.')) return; else if(current==='0' && d!=='.') current = d; else current = current + d; render(); }
+      function handleOperator(op){ if(operator && !overwrite) compute(); previous = parseFloat(current); operator = op; overwrite = true; render(); }
+      function compute(){ if(operator==null || previous==null) return; const a=previous; const b=parseFloat(current); let res=0; if(operator==='+') res=a+b; if(operator==='-') res=a-b; if(operator==='*') res=a*b; if(operator==='/'){ if(b===0){ errorState('Divide by zero'); return } res=a/b; } current=String(roundResult(res)); operator=null; previous=null; overwrite=true; render(); }
+      function roundResult(n){ if(Math.abs(n) < 1e12) return +parseFloat(n.toFixed(10)); return n; }
+      function equals(){ compute(); playHaptic('equals'); playSFX('equals'); saveHistory({type:'calc', entry:`${expr.textContent} ${current}`, result:current, ts:Date.now()}); }
+      function del(){ if(overwrite){ current='0'; overwrite=false; render(); return } if(current.length<=1){ current='0'; } else current=current.slice(0,-1); render(); }
+      function clearAll(){ current='0'; previous=null; operator=null; overwrite=false; render(); }
+      function errorState(msg){ current='Error'; previous=null; operator=null; overwrite=true; render(); playHaptic('error'); playSFX('error'); setTimeout(()=>{ current='0'; overwrite=false; render(); },900); }
+      function render(){ expr.textContent = previous!==null && operator ? `${previous} ${symbolFor(operator)}` : ''; resultEl.textContent = String(current); }
+      function symbolFor(op){ if(op==='+') return '+'; if(op==='-') return '−'; if(op==='*') return '×'; if(op==='/') return '÷'; return op }
+
+      // pointer interactions
+      let pressedBtn = null; pad.addEventListener('pointerdown', (e)=>{ const btn = e.target.closest('.btn'); if(!btn) return; pressedBtn=btn; btn.classList.add('active'); if(!audioInitialized){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(err){ audioCtx=null } audioInitialized=true } playHaptic('tap'); playSFX('tap'); });
+      window.addEventListener('pointerup', (e)=>{ if(!pressedBtn) return; const upTarget = document.elementFromPoint(e.clientX, e.clientY); const valid = upTarget && pressedBtn.contains(upTarget); if(valid) performAction(pressedBtn); pressedBtn.classList.remove('active'); pressedBtn=null; });
+      window.addEventListener('pointercancel', ()=>{ if(pressedBtn){ pressedBtn.classList.remove('active'); pressedBtn=null } });
+
+      function performAction(btn){ if(btn.classList.contains('digit')){ inputDigit(btn.dataset.value); return } const action = btn.dataset.action; if(action==='clear'){ clearAll(); return } if(action==='delete'){ del(); return } if(action==='='){ equals(); return } if(['+','-','*','/'].includes(action)){ handleOperator(action); return } }
+
+      // keyboard shortcuts
+      window.addEventListener('keydown',(e)=>{ if(e.key>='0' && e.key<='9') return inputDigit(e.key); if(e.key==='.') return inputDigit('.'); if(e.key==='Backspace') return del(); if(e.key==='Escape') return clearAll(); if(['+','-','*','/'].includes(e.key)) return handleOperator(e.key); if(e.key==='Enter' || e.key==='=') return equals(); });
+
+      // display gestures (swipe)
+      function setupDisplayGestures(){ let startX=null; let startY=null; let tracking=false; display.addEventListener('touchstart',(ev)=>{ const t=ev.changedTouches[0]; startX=t.clientX; startY=t.clientY; tracking=true }); display.addEventListener('touchend',(ev)=>{ if(!tracking) return; const t=ev.changedTouches[0]; const dx = t.clientX - startX; const dy = Math.abs(t.clientY - startY); tracking=false; startX=null; startY=null; if(Math.abs(dx)>40 && dy<30){ if(dx>0){ clearAll(); playHaptic('tap'); playSFX('tap'); } else { del(); playHaptic('tap'); playSFX('tap'); } } }); display.addEventListener('dblclick',()=>{ clearAll(); playHaptic('tap'); playSFX('tap'); }); }
+
+      // scientific keys
+      sciToggle.addEventListener('click', ()=>{ sciDrawer.style.display = sciDrawer.style.display==='none' ? 'flex' : 'none'; playHaptic('sci'); });
+      sciDrawer.addEventListener('click', (e)=>{ const k = e.target.closest('.sci-key'); if(!k) return; applyScientific(k.dataset.sci); });
+
+      function applyScientific(code){ try{ const val = parseFloat(current); let out = null; if(code==='pi') out = Math.PI; else if(code==='e') out = Math.E; else if(code==='sin') out = Math.sin(toRadians(val)); else if(code==='cos') out = Math.cos(toRadians(val)); else if(code==='tan') out = Math.tan(toRadians(val)); else if(code==='asin') out = toDegrees(Math.asin(val)); else if(code==='log') out = Math.log10(val); else if(code==='ln') out = Math.log(val); else if(code==='^') { previous = val; operator='^'; overwrite=true; return } else if(code==='sqrt') out = Math.sqrt(val); else if(code==='fact') out = factorial(val); if(out!==null){ current = String(roundResult(out)); overwrite=true; render(); saveHistory({type:'sci', entry:`${code}(${val})`, result:current, ts:Date.now()}); playHaptic('sci'); playSFX('equals'); } }catch(e){ errorState('Math error') } }
+      function factorial(n){ if(n<0) return NaN; if(n===0) return 1; let r=1; for(let i=1;i<=Math.floor(n);i++) r*=i; return r }
+      function toRadians(d){ return d * Math.PI / 180 }
+      function toDegrees(r){ return r * 180 / Math.PI }
+
+      // WebAudio SFX
+      function playSFX(kind){ if(!settings.sounds) return; if(!audioInitialized) return; try{ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); const now = audioCtx.currentTime; if(kind==='tap'){ const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type='sine'; o.frequency.value=420; g.gain.value=0.0001; o.connect(g); g.connect(audioCtx.destination); g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.12, now+0.01); g.gain.exponentialRampToValueAtTime(0.0001, now+0.12); o.start(now); o.stop(now+0.14); } else if(kind==='equals'){ const g = audioCtx.createGain(); g.connect(audioCtx.destination); const o1=audioCtx.createOscillator(); const o2=audioCtx.createOscillator(); o1.type='sine'; o2.type='sine'; o1.frequency.value=440; o2.frequency.value=660; o1.connect(g); o2.connect(g); g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(0.14, now+0.06); g.gain.exponentialRampToValueAtTime(0.0001, now+0.6); o1.start(now); o2.start(now); o1.stop(now+0.6); o2.stop(now+0.6); } else if(kind==='error'){ const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type='sawtooth'; o.frequency.value=220; o.connect(g); g.connect(audioCtx.destination); g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.16, now+0.005); g.gain.exponentialRampToValueAtTime(0.0001, now+0.18); o.start(now); o.stop(now+0.18); } }catch(err){} }
+
+      // Haptics
+      function playHaptic(kind){ if(!settings.haptics) return; if(!('vibrate' in navigator)) return; try{ if(kind==='tap') navigator.vibrate(VIB.tap); else if(kind==='equals') navigator.vibrate(VIB.equals); else if(kind==='error') navigator.vibrate(VIB.error); else if(kind==='sci') navigator.vibrate(VIB.sci); }catch(e){} }
+
+      // Converter logic (local factors)
+      function populateUnitSelects(){ const cat = convCategory.value; convFrom.innerHTML=''; convTo.innerHTML=''; if(cat==='currency'){ // default placeholders
+          ['USD','EUR','INR','JPY','GBP'].forEach(c=>{ const o1=new Option(c,c); const o2=new Option(c,c); convFrom.add(o1); convTo.add(o2); }); convFrom.value='USD'; convTo.value='INR'; convRate.textContent=''; convResult.textContent='—';
+        } else if(cat==='temperature'){ Object.keys(units.temperature).forEach(k=>{ convFrom.add(new Option(k,k)); convTo.add(new Option(k,k)); }); convFrom.value='C'; convTo.value='F'; convResult.textContent='—'; }
+        else if(cat==='number'){ Object.keys(units.number).forEach(k=>{ convFrom.add(new Option(units.number[k][0],k)); convTo.add(new Option(units.number[k][0],k)); }); convFrom.value='dec'; convTo.value='bin'; }
+        else { const map = units[cat]; Object.keys(map).forEach(k=>{ convFrom.add(new Option(map[k][0],k)); convTo.add(new Option(map[k][0],k)); }); }
+      }
+
+      function convertUnits(){ const cat = convCategory.value; const valRaw = convInput.value; if(valRaw===null || valRaw==='') { convResult.textContent='—'; return; } if(cat==='currency'){ const from=convFrom.value, to=convTo.value, v=parseFloat(valRaw||0); // try cached rates
+            const rates = JSON.parse(localStorage.getItem('aura_rates')||'{}'); if(rates && rates.rates && rates.base){ const r = rates.rates; if(r[from] && r[to]){ const baseTo = r[to]; const baseFrom = r[from]; const out = v * (baseTo / baseFrom); convResult.textContent = out.toFixed(4); convRate.textContent = `1 ${from} = ${(baseTo/baseFrom).toFixed(4)} ${to}`; } else convResult.textContent='No rate'; } else convResult.textContent='No rates cached'; }
+        else if(cat==='temperature'){ const from=convFrom.value, to=convTo.value, v=parseFloat(valRaw); const out = tempConvert(v,from,to); convResult.textContent = out; }
+        else if(cat==='number'){ const from=convFrom.value, to=convTo.value, v=valRaw.toString(); try{ const dec = parseInt(v, baseFor(from)); const out = baseFromTo(dec, to); convResult.textContent = out; }catch(e){ convResult.textContent='—' } }
+        else { const map = units[cat]; const f = map[convFrom.value][2]; const t = map[convTo.value][2]; const v = parseFloat(valRaw); const out = v * (f / t); convResult.textContent = (isNaN(out)?'—':out); }
+      }
+
+      function tempConvert(v,from,to){ if(from===to) return v; let c=0; if(from==='C'){ c=v } else if(from==='F'){ c=(v-32)*(5/9) } else if(from==='K'){ c=v-273.15 } if(to==='C') return round(c); if(to==='F') return round(c*(9/5)+32); if(to==='K') return round(c+273.15); }
+      function round(n){ return Math.round((n+Number.EPSILON)*100000)/100000 }
+
+      function baseFor(key){ if(key==='dec') return 10; if(key==='bin') return 2; if(key==='hex') return 16; if(key==='oct') return 8; }
+      function baseFromTo(dec, to){ if(isNaN(dec)) return '—'; if(to==='dec') return String(dec); if(to==='bin') return dec.toString(2); if(to==='hex') return dec.toString(16).toUpperCase(); if(to==='oct') return dec.toString(8); }
+
+      // Currency: fetch placeholder (developer should plug real API)
+      async function fetchRates(){ const key = apiKeyInput.value.trim(); ratesInfo.textContent='Fetching...'; try{ const response = await fetch(`https://api.exchangerate.host/latest?base=USD`);
+const data = await response.json();
+localStorage.setItem('aura_rates', JSON.stringify({ base: data.base, rates: data.rates, ts: Date.now() }));
+ratesInfo.textContent = `Rates updated (base ${data.base})`;
+
+          // Placeholder: mock rates
+          const mock = { base:'USD', rates:{ USD:1, EUR:0.92, INR:83.5, JPY:156.7, GBP:0.79 }, ts:Date.now() };
+          localStorage.setItem('aura_rates', JSON.stringify(mock)); ratesInfo.textContent = `Mock rates cached (base ${mock.base})`; convRate.textContent=''; convertUnits();
+        }catch(err){ ratesInfo.textContent='Failed to fetch'; }
+      }
+
+      // history UI
+      function renderHistory(){ const h = loadHistory(); historyList.innerHTML=''; if(!h.length) { historyList.innerHTML = '<div style="color:var(--muted)">No history yet</div>'; return } h.forEach((item,idx)=>{ const el = document.createElement('div'); el.className='history-item'; el.innerHTML = `<div><div style="font-weight:600">${item.type==='calc'?'Calc':'Conv'} — ${item.entry}</div><div class="history-txt">Result: ${item.result}</div></div><div style="text-align:right"><div class="history-time">${new Date(item.ts).toLocaleString()}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn function" data-idx="${idx}" data-action="reuse">Use</button><button class="btn function" data-idx="${idx}" data-action="del">Del</button></div></div>`; historyList.appendChild(el); }); }
+      historyList.addEventListener('click',(e)=>{ const b = e.target.closest('button'); if(!b) return; const action = b.dataset.action; const idx = parseInt(b.dataset.idx); const h = loadHistory(); const item = h[idx]; if(action==='reuse'){ if(item.type==='calc'){ current = item.result; overwrite=true; render(); playHaptic('tap'); playSFX('tap'); } else if(item.type==='conv'){ convInput.value = item.input; convCategory.value = item.category; populateUnitSelects(); convFrom.value = item.from; convTo.value = item.to; convertUnits(); } } else if(action==='del'){ h.splice(idx,1); localStorage.setItem('aura_history_v2', JSON.stringify(h)); renderHistory(); } });
+      clearHistoryBtn.addEventListener('click', ()=>{ clearHistory(); });
+      exportHistoryBtn.addEventListener('click', ()=>{ const data = localStorage.getItem('aura_history_v2')||'[]'; const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'aura_history.json'; a.click(); URL.revokeObjectURL(url); });
+
+      // init UI
+      function init(){ applyTheme(); updateSoundUI(); render(); populateUnitSelects(); renderHistory(); setupDisplayGestures(); document.getElementById('convCategory').addEventListener('change', ()=>{ populateUnitSelects(); }); convFrom.addEventListener('change', convertUnits); convTo.addEventListener('change', convertUnits); convInput.addEventListener('input', convertUnits); fetchRatesBtn.addEventListener('click', fetchRates); apiKeyInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') fetchRates(); });
+
+        // theme toggle
+        themeToggle.addEventListener('click', ()=>{ settings.theme = settings.theme==='dark'?'light':'dark'; applyTheme(); });
+        soundToggle.addEventListener('click', ()=>{ settings.sounds = !settings.sounds; settings.haptics = settings.sounds; localStorage.setItem('aura_sounds', settings.sounds); localStorage.setItem('aura_haptics', settings.haptics); updateSoundUI(); });
+
+        // pad keyboard support via existing handlers
+        window.AuraCalc = { clear: clearAll, getValue: ()=>current };
+      }
+
+      // attach calculator pointer handlers (reuse previous implementation)
+      // (Handled above: pad pointerdown/pointerup)
+
+      init();
+      tsParticles.load("particles", {
+  background: {
+    color: "transparent"
+  },
+  particles: {
+    number: { value: 50 },
+    color: { value: "#8a7cff" }, // Accent color
+    shape: { type: "circle" },
+    opacity: { value: 0.3 },
+    size: { value: { min: 1, max: 4 } },
+    move: {
+      enable: true,
+      speed: 1,
+      direction: "none",
+      outModes: { default: "bounce" }
+    },
+    links: {
+      enable: true,
+      color: "#8a7cff",
+      opacity: 0.2
+    }
+  },
+  interactivity: {
+    events: {
+      onHover: { enable: true, mode: "repulse" }
+    },
+    modes: {
+      repulse: { distance: 100 }
+    }
+  }
+});
+
+
+    })();
+  </script>
+</body>
+</html>
