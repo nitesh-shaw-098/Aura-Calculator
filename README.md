@@ -17,14 +17,6 @@ Designed with **clean UI/UX principles**, mobile responsiveness, and smooth inte
 - 🌙 **Dark/Light Mode Ready** (easy theme customization).  
 - ⚡ **Fast & Lightweight** — Pure HTML, CSS, and JavaScript (no heavy frameworks).  
 
----
-
-## 🖼️ Preview
-
-![Aura Calculator Screenshot](preview1.png)  
-![Aura Calculator Screenshot](preview2.png) 
-
----
 
 ## 🌍 Live Demo
 
@@ -46,7 +38,15 @@ Aura-Calculator/
 └── README.md       # Project documentation
 
 ````
+---
 
+## 🖼️ Preview
+
+![Aura Calculator Screenshot](preview1.png)  
+![Aura Calculator Screenshot](preview2.png) 
+![Aura Calculator Screenshot](preview3.png) 
+
+---
 ---
 
 ## 🛠️ Technologies Used
